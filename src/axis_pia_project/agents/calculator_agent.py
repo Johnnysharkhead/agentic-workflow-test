@@ -1,7 +1,10 @@
 from langchain_core.messages import SystemMessage, HumanMessage
+
+from axis_pia_project.tools.query_with_itemId import api_query_base_on_itemId
 from ..config import llm_from_axis 
 from ..memory_LLMs_schema import AgentState
 from ..tools import dummy_calculator
+from ..tools import api_query_base_on_itemId
 
 # Node 2: Calculator Agent
 def calculator_agent(state: AgentState) -> AgentState:
@@ -10,18 +13,19 @@ def calculator_agent(state: AgentState) -> AgentState:
     llm = llm_from_axis
     
     # augment the llm with tools (calculator)
-    llm_with_tools = llm.bind_tools([dummy_calculator])
+    llm_with_tools = llm.bind_tools([dummy_calculator, api_query_base_on_itemId])
     
     user_input = state["messages"][-1].content # comes from the agent state, which is the original user input(short-term memory)
     
     # Agent makes decision based on the reasoning by augmented LLM
     system_message = """
-    Role: You are a mathematical calculation assistant.
-    Task: When the user asks a question that requires calculation, you should use the calculator tool to get the answer.
+    Role: You are a task assignment decision assistant.
+    Task: When the user asks a question that requires calculation or query info based on itemId, you should use the appropriate tool to get the answer.
     Remember to use the tool when necessary, and provide a friendly and concise response to the user based on the tool's output.
     """
 
     # First time to invoke the LLM agent, to see if it will call the tool
+    # 第一次调用 LLM → LLM 返回 tool_calls（告诉你它想调哪个工具、传什么参数）
     response = llm_with_tools.invoke([
         SystemMessage(content=system_message),
         HumanMessage(content=user_input)
@@ -30,19 +34,36 @@ def calculator_agent(state: AgentState) -> AgentState:
     
     # Check if the agent decided to call the tool (this is a feature of the augmented LLM, which can call tools when it thinks it's necessary)
     if response.tool_calls:
+
+        tool_mapping = {
+            "dummy_calculator": dummy_calculator,
+            "api_query_base_on_itemId": api_query_base_on_itemId
+        }
         
-        # for monitoring whether the agent decides to use the tool and what input it gives to the tool
+     
+        """
+        LangChain 的 tool_calls 返回的字典结构是这样的：
+        {
+            "name": "dummy_calculator",        # 工具名（字符串）
+            "args": {"expression": "2+3"},     # 参数（字典）
+            "id": "call_xxx"                   # 调用ID
+        }
+        """
         print("Calculator Agent decided to use the tool with input:", response.tool_calls[0]["args"])
-        
-        tool_call = response.tool_calls[0]  # only one tool call expected
-        tool_result = dummy_calculator.invoke(tool_call["args"])
+
+        tool_func = tool_mapping.get(response.tool_calls[0]["name"])
+           
+        # for monitoring whether the agent decides to use the tool and what input it gives to the tool
+        print(f"Calculator Agent decided to use the tool: {response.tool_calls[0]['name']}")
+
+        tool_result = tool_func.invoke(response.tool_calls[0]["args"])
         
         # Second time to invoke the LLM agent, to generate the final answer based on the tool result
         final_response = llm.invoke([
             SystemMessage(content=system_message), # keep the system message to remind the agent of its role and task
             HumanMessage(content=user_input), # keep the original user input to maintain the context
             response, # the response from the first time invoking, which contains the tool calling decision and can be used by the agent to generate the final answer
-            HumanMessage(content=f"Tool result: {tool_result}") # provide the tool result to the agent
+            HumanMessage(content=f" {tool_result}") # provide the tool result to the agent
         ])
         
         answer = final_response.content

@@ -21,34 +21,16 @@ def main():
     
     print(f"\n The case 1 final answer is : {result1['final_answer']}\n")
     
-    # case2: write an email
+    # case2: query product info based on itemId, which is for testing the routing and tool calling of the calculator_agent
+    
     result2 = app.invoke({
-        "messages": [HumanMessage(content="I would like to write an email to my supervisor to request a day off.")],
+        "messages": [HumanMessage(content="I want to know about the main info of the product with itemId 68003")],
         "next_agent": "",
         "final_answer": ""
     })
     
     print(f"\n The case 2 final answer is:\n{result2['final_answer']}\n")
-    
-    # case3: write an email with calculation involved (to test the routing)
-    result3 = app.invoke({
-        "messages": [HumanMessage(content="I need to write an email to my supervisor to tell him that what's the result of 1+2+3+...+100.")],
-        "next_agent": "",
-        "final_answer": ""
-    })
-    
-    print(f"\n The case 3 final answer is:\n{result3['final_answer']}\n")
-   
-
-    # case4: write random question neither related to calculation nor email, to see how the router and agents handle it (edge case)
-    result4 = app.invoke({
-        "messages": [HumanMessage(content="why cloud seems blue?")],
-        "next_agent": "",
-        "final_answer": ""
-    })
-    
-    print(f"\n The case 4 final answer is:\n{result4['final_answer']}\n")
-
+ 
 
 if __name__ == "__main__":
     main()

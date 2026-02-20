@@ -18,7 +18,7 @@ def router_node(state: AgentState) -> AgentState:
     # prompt of the router node
     router_prompt = """You are an intelligent router that directs user queries to the appropriate agent. You have two agents available:
     
-    - calculator_agent: solves math problems, performs calculations, and answers questions related to mathematics
+    - calculator_agent: solves math and product query problems based on itemId
     - email_agent: writes emails, letters, and formal documents
     
     User input: {input}
