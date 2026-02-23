@@ -17,7 +17,8 @@ class AgentState(TypedDict):
     ├── AIMessage         # AI Inference Response
     └── ToolMessage       # Tool Calling Response
     """
-    messages: Annotated[list[BaseMessage], operator.add] 
-
+    messages: Annotated[list[BaseMessage], operator.add]
+    
+    item_id: str
     next_agent: str  
     final_answer: str

@@ -11,7 +11,8 @@ from langchain_core.messages import HumanMessage
 def main():
     
     app = create_agent_graph()
- 
+    
+    """
     # case1: calulate a math problem
     result1 = app.invoke({
         "messages": [HumanMessage(content="Help me to calculate (25 + 75) * 3 / 2")],
@@ -20,16 +21,27 @@ def main():
     })
     
     print(f"\n The case 1 final answer is : {result1['final_answer']}\n")
+    """
     
     # case2: query product info based on itemId, which is for testing the routing and tool calling of the calculator_agent
     
     result2 = app.invoke({
-        "messages": [HumanMessage(content="I want to know about the main info of the product with itemId 68003")],
+        "messages": [HumanMessage(content="Which Power Supplies are compatible with the M5000? ")],
         "next_agent": "",
         "final_answer": ""
     })
     
-    print(f"\n The case 2 final answer is:\n{result2['final_answer']}\n")
+    print(f"\n{result2['messages'][-1].content}\n{result2['final_answer']}\n")
+
+
+    result3 = app.invoke({
+        "messages": [HumanMessage(content=" What is the correct part number for the Q6074-E without the mid-span?")],
+        "next_agent": "",
+        "final_answer": ""
+    })
+    
+    print(f"\n{result3['messages'][-1].content}\n{result3['final_answer']}\n")
+   
  
 
 if __name__ == "__main__":

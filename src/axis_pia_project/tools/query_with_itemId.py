@@ -92,10 +92,7 @@ class APIFetcher:
         self.session.close()
 
 
-"""
 def main():
-
-    import os
     
     config = APIConfig(
         api_key=os.getenv("PIA_GATEWAY_TOKEN")
@@ -121,4 +118,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-"""

@@ -2,7 +2,7 @@
 
 from langgraph.graph import StateGraph, START, END
 from ..memory_LLMs_schema import AgentState
-from ..agents import router_node, route_to_agent, calculator_agent, email_agent
+from ..agents import router_node, route_to_agent, calculator_agent, email_agent, itemId_retrieve_agent
 
 # This is where LangGraph workflow comes in
 def create_agent_graph():
@@ -14,9 +14,10 @@ def create_agent_graph():
     workflow.add_node("router", router_node)
     workflow.add_node("calculator_agent", calculator_agent)
     workflow.add_node("email_agent", email_agent)
+    workflow.add_node("itemId_retrieve_agent", itemId_retrieve_agent)
     
     # Set the router node as START node
-    workflow.add_edge(START, "router")
+    workflow.add_edge(START, "itemId_retrieve_agent") # the itemId_retrieve_agent is set before the router, which is like a pre-processing step for the user input, to extract the itemId if there is a product query, and put it into the agent state for the router to make better decision.
     
     # add conditional edges from the router to the two agents 
     workflow.add_conditional_edges(
@@ -29,8 +30,11 @@ def create_agent_graph():
     )
     
     # add edges from the agents to the END node
-    workflow.add_edge("calculator_agent", END)
-    workflow.add_edge("email_agent", END)
+    
+    #workflow.add_edge("calculator_agent", END)
+    #workflow.add_edge("email_agent", END)
+
+    workflow.add_edge("itemId_retrieve_agent", END)
 
     """
     Take a user query as example, the workflow execution will be like this:
